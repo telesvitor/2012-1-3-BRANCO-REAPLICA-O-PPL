@@ -21,83 +21,36 @@ def encontrar_faixa_azul(imagem, cor_alvo, tolerancia_cor=60, margem_erro=4):
     pixels = imagem.load()
     
     posicoes_corte = []
-    x_meio = largura // 2
-    altura_max_busca = 28
     
-    # Comprimento mínimo horizontal que a linha preta deve ter para não ser considerada uma letra (em pixels)
-    comprimento_minimo_linha = 100 
+    # ALTERAÇÃO MÍNIMA: Definição do intervalo exato pedido por você
+    x_inicio = 326
+    comprimento_exigido = 612  # Percorre de 326 até 938 (938 - 326 = 612)
     
     y = 0
-    while y < altura - altura_max_busca:
-        padrao_encontrado_no_centro = False
-        altura_total_encontrada = 16
-        
-        # 1. Procura o padrão vertical no pixel central exato
-        pretos_1 = 0
-        while y + pretos_1 < altura:
-            r, g, b = pixels[x_meio, y + pretos_1][:3]
+    while y < altura:
+        # ALTERAÇÃO MÍNIMA: Substituição do bloco vertical pela varredura horizontal de 612px
+        extensao_horizontal = 0
+        for dx in range(comprimento_exigido):
+            if x_inicio + dx >= largura:
+                break
+            r, g, b = pixels[x_inicio + dx, y][:3]
             if abs(r - 0) <= tolerancia_cor and abs(g - 0) <= tolerancia_cor and abs(b - 0) <= tolerancia_cor:
-                pretos_1 += 1
+                extensao_horizontal += 1
             else:
                 break
         
-        if 7 - margem_erro <= pretos_1 <= 7 + margem_erro:
-            y_brancos = y + pretos_1
-            brancos = 0
-            while y_brancos + brancos < altura:
-                r, g, b = pixels[x_meio, y_brancos + brancos][:3]
-                if abs(r - 255) <= tolerancia_cor and abs(g - 255) <= tolerancia_cor and abs(b - 255) <= tolerancia_cor:
-                    brancos += 1
-                else:
-                    break
-                    
-            if 5 - margem_erro <= brancos <= 5 + margem_erro:
-                y_pretos_2 = y_brancos + brancos
-                pretos_2 = 0
-                while y_pretos_2 + pretos_2 < altura:
-                    r, g, b = pixels[x_meio, y_pretos_2 + pretos_2][:3]
-                    if abs(r - 0) <= tolerancia_cor and abs(g - 0) <= tolerancia_cor and abs(b - 0) <= tolerancia_cor:
-                        pretos_2 += 1
-                    else:
-                        break
-                        
-                if 4 - margem_erro <= pretos_2 <= 4 + margem_erro and pretos_2 > 0:
-                    padrao_encontrado_no_centro = True
-                    altura_total_encontrada = pretos_1 + brancos + pretos_2
-
-        # 2. SE encontrou no centro, CONFIRMA se é uma linha longa ou apenas uma letra/texto
-        if padrao_encontrado_no_centro:
-            extensao_horizontal = 0
-            
-            # Varre para a direita a partir do centro procurando continuidade da linha preta
-            for dx in range(1, comprimento_minimo_linha):
-                r, g, b = pixels[x_meio + dx, y][:3]
-                if abs(r - 0) <= tolerancia_cor and abs(g - 0) <= tolerancia_cor and abs(b - 0) <= tolerancia_cor:
-                    extensao_horizontal += 1
-                else:
-                    break
-                    
-            # Varre para a esquerda a partir do centro procurando continuidade da linha preta
-            for dx in range(1, comprimento_minimo_linha):
-                r, g, b = pixels[x_meio - dx, y][:3]
-                if abs(r - 0) <= tolerancia_cor and abs(g - 0) <= tolerancia_cor and abs(b - 0) <= tolerancia_cor:
-                    extensao_horizontal += 1
-                else:
-                    break
-            
-            # Se a soma da extensão horizontal for maior ou igual ao mínimo exigido, é uma linha real de questão!
-            if extensao_horizontal >= comprimento_minimo_linha:
-                # Corta 15 pixels antes de onde a linha começou para dar respiro ao título
-                posicao_corte = y - 15  
-                if posicao_corte < 0:  
-                    posicao_corte = 0
-                    
-                posicoes_corte.append(posicao_corte)
-                print(f"Linha REAL de questão validada em y={y} (Extensão horizontal: {extensao_horizontal}px). Cortando em y={posicao_corte}")
+        # Quando der os 612 pixels pretos contínuos, ele entra aqui e corta
+        if extensao_horizontal >= comprimento_exigido:
+            posicao_corte = y - 15  
+            if posicao_corte < 0:  
+                posicao_corte = 0
                 
-                # Salta uma margem maior para sair totalmente da hachura
-                y += altura_total_encontrada + 40
-                continue
+            posicoes_corte.append(posicao_corte)
+            print(f"Linha REAL de questão validada em y={y} (Extensão horizontal: {extensao_horizontal}px). Cortando em y={posicao_corte}")
+            
+            # Salta uma margem para sair totalmente da hachura
+            y += 40
+            continue
                 
         y += 1
     
@@ -147,8 +100,13 @@ def dividir_imagem_por_faixas(caminho_imagem, pasta_saida, cor_alvo):
         print(f"Salvo: {caminho_completo} ({secao.width}x{secao.height}px)")
 
 if __name__ == "__main__":
-    caminho_imagem = "colunas_concatenadas_verticalmente.png"  
-    pasta_saida = "questoes_colunas" 
+    #caminho_imagem = "colunas_concatenadas_verticalmente.png"  # Substitua pelo caminho da sua imagem
+    #pasta_saida = "questoes_colunas" # Substitua pelo nome da pasta de saída desejada (questoes_colunas, pagina_15, pagina_28)
+
+    caminho_imagem = "./inteira/pagina_enem_31.png"  # Substitua pelo caminho da sua imagem
+    pasta_saida = "pagina_31" # Substitua pelo nome da pasta de saída desejada (questoes_colunas, pagina_15, pagina_28)
+    
+ 
     
     cor_do_padrao = converter_cor_gimp_para_rgb(0.0, 0.0, 0.0) 
     
